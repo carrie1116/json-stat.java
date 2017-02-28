@@ -417,7 +417,7 @@ public class DatasetTableViewTest {
         );
     }
 
-    private Table.Cell<List<String>, List<String>, Number> cell(List<String> row, List<String> column, Number value) {
+    private Table.Cell<List<String>, List<String>, Object> cell(List<String> row, List<String> column, Object value) {
         return Tables.immutableCell(row, column, value);
     }
 

@@ -51,7 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DatasetDeserializer extends StdDeserializer<DatasetBuildable> {
 
-    static final TypeReference<List<Number>> VALUES_LIST = new TypeReference<List<Number>>() {
+    static final TypeReference<List<Object>> VALUES_LIST = new TypeReference<List<Object>>() {
     };
     static final TypeReference<Map<String, Dimension.Builder>> DIMENSION_MAP = new TypeReference<Map<String, Dimension.Builder>>() {
     };
@@ -61,7 +61,7 @@ public class DatasetDeserializer extends StdDeserializer<DatasetBuildable> {
     };
     static final TypeReference<ArrayListMultimap<String, String>> ROLE_MULTIMAP = new TypeReference<ArrayListMultimap<String, String>>() {
     };
-    static final TypeReference<?> VALUES_MAP = new TypeReference<TreeMap<Integer, Number>>() {
+    static final TypeReference<?> VALUES_MAP = new TypeReference<TreeMap<Integer, Object>>() {
     };
 
     static final DateTimeFormatter ECMA_FORMATTER = new DateTimeFormatterBuilder()
@@ -107,7 +107,7 @@ public class DatasetDeserializer extends StdDeserializer<DatasetBuildable> {
         List<Integer> sizes = Collections.emptyList();
         Multimap<String, String> roles = ArrayListMultimap.create();
         Map<String, Dimension.Builder> dims = Collections.emptyMap();
-        List<Number> values = Collections.emptyList();
+        List<Object> values = Collections.emptyList();
 
 
         DatasetBuilder builder = Dataset.create();
@@ -228,12 +228,12 @@ public class DatasetDeserializer extends StdDeserializer<DatasetBuildable> {
         return builder.withDimensions(orderedDimensions).withValues(values);
     }
 
-    List<Number> parseValues(JsonParser p, DeserializationContext ctxt) throws IOException {
-        List<Number> result = Collections.emptyList();
+    List<Object> parseValues(JsonParser p, DeserializationContext ctxt) throws IOException {
+        List<Object> result = Collections.emptyList();
         switch (p.getCurrentToken()) {
             case START_OBJECT:
-                SortedMap<Integer, Number> map = p.readValueAs(VALUES_MAP);
-                result = new AbstractList<Number>() {
+                SortedMap<Integer, Object> map = p.readValueAs(VALUES_MAP);
+                result = new AbstractList<Object>() {
 
                     @Override
                     public int size() {
@@ -241,7 +241,7 @@ public class DatasetDeserializer extends StdDeserializer<DatasetBuildable> {
                     }
 
                     @Override
-                    public Number get(int index) {
+                    public Object get(int index) {
                         return map.get(index);
                     }
                 };

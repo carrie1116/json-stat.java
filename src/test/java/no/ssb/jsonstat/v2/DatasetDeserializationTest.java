@@ -74,8 +74,8 @@ public class DatasetDeserializationTest {
 
         Dataset build = next.build();
 
-        Map<List<String>, Number> listListMap = build.asMap();
-        for (Map.Entry<List<String>, Number> listListEntry : listListMap.entrySet()) {
+        Map<List<String>, Object> listListMap = build.asMap();
+        for (Map.Entry<List<String>, Object> listListEntry : listListMap.entrySet()) {
             System.out.println(listListEntry);
         }
 
@@ -94,7 +94,7 @@ public class DatasetDeserializationTest {
 
         // Manually add extension
         node.with("extension")
-                .put("number", 10)
+                .put("Object", 10)
                 .putArray("array")
                 .add("string");
 
@@ -126,7 +126,7 @@ public class DatasetDeserializationTest {
                 DatasetBuildable.class
         ).build();
 
-        Map<Integer, Number> value = jsonStat.getValue();
+        Map<Integer, Object> value = jsonStat.getValue();
 
         // Check value order
         assertThat(value).isNotNull();
@@ -137,7 +137,7 @@ public class DatasetDeserializationTest {
         assertThat(value.get(2)).isEqualTo(3);
 
         // Check value + dimension coupling using asMap()
-        Iterable<Map.Entry<List<String>, Number>> limit = Iterables.limit(jsonStat.asMap().entrySet(), 3);
+        Iterable<Map.Entry<List<String>, Object>> limit = Iterables.limit(jsonStat.asMap().entrySet(), 3);
         assertThat(limit).containsExactly(
                 entry(asList("AA"), 1),
                 entry(asList("AB"), 2),
@@ -161,9 +161,9 @@ public class DatasetDeserializationTest {
         assertThat(jsonStat.getClazz()).isEqualTo("dataset");
         assertThat(jsonStat.getLabel()).contains("Population by province of residence, place of birth, age, gender and year in Galicia");
         assertThat(jsonStat.getSource()).contains("INE and IGE");
-        assertThat(jsonStat.getUpdated()).contains(Instant.parse("2012-12-27T12:25:09Z"));
+        assertThat(jsonStat.getUpdated()).contains(Instant.parse("2012-12-27T12:25:09Z").toString());
 
-        Iterable<Map.Entry<List<String>, Number>> limit = Iterables.limit(jsonStat.asMap().entrySet(), 5);
+        Iterable<Map.Entry<List<String>, Object>> limit = Iterables.limit(jsonStat.asMap().entrySet(), 5);
         assertThat(limit).containsExactly(
                 entry(asList("T", "T", "T", "2001", "T", "pop"), 2695880),
                 entry(asList("T", "T", "T", "2001", "15", "pop"), 1096027),

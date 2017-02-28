@@ -67,7 +67,7 @@ public abstract class Dataset extends JsonStat {
 
     private final String label;
     private final String source;
-    private final Instant updated;
+    private final String updated;
     // TODO: Support for status.
 
 
@@ -75,7 +75,7 @@ public abstract class Dataset extends JsonStat {
         super(Version.TWO, Class.DATASET);
         this.label = label;
         this.source = source;
-        this.updated = updated;
+        this.updated = updated == null ? null : updated.toString();
     }
 
     /**
@@ -108,7 +108,7 @@ public abstract class Dataset extends JsonStat {
      *
      * @see <a href="https://json-stat.org/format/#role">json-stat.org/format/#role</a>
      */
-    public ImmutableMultimap<Dimension.Roles, String> getRole() {
+    public ImmutableMap<Dimension.Roles, Collection<String>> getRole() {
         ImmutableMultimap.Builder<Dimension.Roles, String> builder;
         builder = ImmutableMultimap.builder();
 
@@ -118,7 +118,7 @@ public abstract class Dataset extends JsonStat {
                 builder.put(role, dimensionEntry.getKey());
             }
         }
-        return builder.build();
+        return builder.build().asMap();
     }
 
     /**
@@ -151,7 +151,7 @@ public abstract class Dataset extends JsonStat {
      *
      * @see <a href="https://json-stat.org/format/#updated">json-stat.org/format/#updated</a>
      */
-    public Optional<Instant> getUpdated() {
+    public Optional<String> getUpdated() {
         //  ISO 8601 format recognized by the Javascript Date.parse method (see ECMA-262 Date Time String Format).
         return Optional.ofNullable(updated);
     }
@@ -179,14 +179,14 @@ public abstract class Dataset extends JsonStat {
      *
      * @see <a href="https://json-stat.org/format/#value">json-stat.org/format/#value</a>
      */
-    public abstract Map<Integer, Number> getValue();
+    public abstract Map<Integer, Object> getValue();
 
     /**
      * Return the values as tuples.
      * <p>
      * The keys are the dimensions and values their associated values.
      */
-    public abstract Map<List<String>, Number> asMap();
+    public abstract Map<List<String>, Object> asMap();
 
     /**
      * Return the values organized as a table.
@@ -240,7 +240,7 @@ public abstract class Dataset extends JsonStat {
      * @param column the dimensions to use as columns.
      * @throws IllegalArgumentException if a dimension is missing
      */
-    public abstract Table<List<String>, List<String>, Number> asTable(Set<String> row, Set<String> column);
+    public abstract Table<List<String>, List<String>, Object> asTable(Set<String> row, Set<String> column);
 
     /**
      * Return the dimensions of the dataset.
@@ -272,7 +272,7 @@ public abstract class Dataset extends JsonStat {
      * row by row and cell by cell, in the order defined by the dimensions.
      */
     @JsonIgnore
-    public Collection<Number> getRows() {
+    public Collection<Object> getRows() {
         return getValue().values();
     }
 
@@ -320,7 +320,7 @@ public abstract class Dataset extends JsonStat {
         }
 
         @Override
-        public DatasetBuildable withValues(Collection<Number> values) {
+        public DatasetBuildable withValues(Collection<Object> values) {
             checkNotNull(values);
 
             if (values.isEmpty())
@@ -330,7 +330,7 @@ public abstract class Dataset extends JsonStat {
         }
 
         @Override
-        public DatasetBuildable withValues(Iterable<Number> values) {
+        public DatasetBuildable withValues(Iterable<Object> values) {
             checkNotNull(values);
 
             // Optimization.
@@ -344,16 +344,16 @@ public abstract class Dataset extends JsonStat {
         }
 
         @Override
-        public DatasetBuildable withValues(Stream<Number> values) {
+        public DatasetBuildable withValues(Stream<Object> values) {
             checkNotNull(values);
 
             if (Stream.empty().equals(values))
                 return build(Stream.empty());
 
-            Stream<Map.Entry<Integer, Number>> entryStream = StreamUtils.zipWithIndex(values)
+            Stream<Map.Entry<Integer, Object>> entryStream = StreamUtils.zipWithIndex(values)
                     .map(tuple -> {
                         Integer dimensionIndex = Math.toIntExact(tuple.getIndex());
-                        Number metric = tuple.getValue();
+                        Object metric = tuple.getValue();
                         return new AbstractMap.SimpleEntry<>(
                                 dimensionIndex, metric);
                     });
@@ -362,20 +362,20 @@ public abstract class Dataset extends JsonStat {
         }
 
         @Override
-        public DatasetBuildable withMapper(Function<List<String>, Number> mapper) {
+        public DatasetBuildable withMapper(Function<List<String>, Object> mapper) {
             // apply function and unroll.
             return withValues(indexProduct.stream().map(mapper));
         }
 
         @Override
-        public ValuesBuilder addTuple(List<String> dimensions, Number value) {
+        public ValuesBuilder addTuple(List<String> dimensions, Object value) {
             // TODO:
             return this;
         }
 
-        public DatasetBuildable build(Stream<Map.Entry<Integer, Number>> entries) {
+        public DatasetBuildable build(Stream<Map.Entry<Integer, Object>> entries) {
 
-            Map<Integer, Number> values = entries.filter(entry -> entry.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<Integer, Object> values = entries.filter(entry -> entry.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             return new DatasetBuildable() {
                 @Override
@@ -388,16 +388,16 @@ public abstract class Dataset extends JsonStat {
                         }
 
                         @Override
-                        public Map<Integer, Number> getValue() {
+                        public Map<Integer, Object> getValue() {
                             return values;
                         }
 
                         @Override
-                        public Map<List<String>, Number> asMap() {
-                            final Map<List<String>, Number> map = new AbstractMap<List<String>, Number>() {
+                        public Map<List<String>, Object> asMap() {
+                            final Map<List<String>, Object> map = new AbstractMap<List<String>, Object>() {
 
                                 @Override
-                                public Number get(Object key) {
+                                public Object get(Object key) {
                                     int index = indexProduct.indexOf(key);
                                     if (index == -1)
                                         return null;
@@ -406,11 +406,11 @@ public abstract class Dataset extends JsonStat {
                                 }
 
                                 @Override
-                                public Set<Entry<List<String>, Number>> entrySet() {
-                                    return new AbstractSet<Entry<List<String>, Number>>() {
+                                public Set<Entry<List<String>, Object>> entrySet() {
+                                    return new AbstractSet<Entry<List<String>, Object>>() {
                                         @Override
-                                        public Iterator<Entry<List<String>, Number>> iterator() {
-                                            return new Iterator<Entry<List<String>, Number>>() {
+                                        public Iterator<Entry<List<String>, Object>> iterator() {
+                                            return new Iterator<Entry<List<String>, Object>>() {
 
                                                 ListIterator<List<String>> keyIterator = indexProduct.listIterator();
 
@@ -420,9 +420,9 @@ public abstract class Dataset extends JsonStat {
                                                 }
 
                                                 @Override
-                                                public Entry<List<String>, Number> next() {
+                                                public Entry<List<String>, Object> next() {
                                                     List<String> dims = keyIterator.next();
-                                                    Number metric = values.get(keyIterator.previousIndex());
+                                                    Object metric = values.get(keyIterator.previousIndex());
                                                     return new SimpleEntry<>(
                                                             dims,
                                                             metric
@@ -442,7 +442,7 @@ public abstract class Dataset extends JsonStat {
                         }
 
                         @Override
-                        public Table<List<String>, List<String>, Number> asTable(Set<String> row, Set<String> column) {
+                        public Table<List<String>, List<String>, Object> asTable(Set<String> row, Set<String> column) {
                             return new DatasetTableView(this, row, column);
                         }
 
@@ -461,7 +461,7 @@ public abstract class Dataset extends JsonStat {
     private static class Builder implements DatasetBuilder {
 
         private final ImmutableSet.Builder<Dimension.Builder> dimensionBuilders;
-        private final ImmutableList.Builder<Optional<Number>> values;
+        private final ImmutableList.Builder<Optional<Object>> values;
         private Object extension;
 
         private String label;

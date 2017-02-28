@@ -272,7 +272,7 @@ public class DatasetTest {
         //        .withGeoRole());
 
         // Supplier.
-        List<Number> collect = cartesianProduct(
+        List<Object> collect = cartesianProduct(
                 ImmutableList.of("2003", "2004", "2005"),
                 ImmutableList.of("may", "june", "july"),
                 ImmutableList.of("30", "31", "32"),

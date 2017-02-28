@@ -45,7 +45,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An implementation of a {@link Table} that uses a {@link Dataset}
  * as data source.
  */
-public class DatasetTableView implements Table<List<String>, List<String>, Number> {
+public class DatasetTableView implements Table<List<String>, List<String>, Object> {
 
     private final Dataset source;
 
@@ -160,7 +160,7 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
 
     @Override
     public boolean containsValue(Object value) {
-        for (Map<List<String>, Number> row : rowMap().values()) {
+        for (Map<List<String>, Object> row : rowMap().values()) {
             if (row.containsValue(value)) {
                 return true;
             }
@@ -174,7 +174,7 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
     }
 
     @Override
-    public Number get(Object rowKey, Object columnKey) {
+    public Object get(Object rowKey, Object columnKey) {
         try {
             Iterator<String> rowList = ((List<String>) rowKey).iterator();
             Iterator<String> columnList = ((List<String>) columnKey).iterator();
@@ -204,14 +204,14 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
     }
 
     @Override
-    public Map<List<String>, Number> row(List<String> rowKey) {
-        return new AbstractMap<List<String>, Number>() {
+    public Map<List<String>, Object> row(List<String> rowKey) {
+        return new AbstractMap<List<String>, Object>() {
 
             @Override
-            public Set<Entry<List<String>, Number>> entrySet() {
-                return new AbstractSet<Entry<List<String>, Number>>() {
+            public Set<Entry<List<String>, Object>> entrySet() {
+                return new AbstractSet<Entry<List<String>, Object>>() {
                     @Override
-                    public Iterator<Entry<List<String>, Number>> iterator() {
+                    public Iterator<Entry<List<String>, Object>> iterator() {
                         return Iterators.transform(
                                 DatasetTableView.this.columnKeySet().iterator(),
                                 columnKey -> {
@@ -230,14 +230,14 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
     }
 
     @Override
-    public Map<List<String>, Number> column(List<String> columnKey) {
-        return new AbstractMap<List<String>, Number>() {
+    public Map<List<String>, Object> column(List<String> columnKey) {
+        return new AbstractMap<List<String>, Object>() {
 
             @Override
-            public Set<Entry<List<String>, Number>> entrySet() {
-                return new AbstractSet<Entry<List<String>, Number>>() {
+            public Set<Entry<List<String>, Object>> entrySet() {
+                return new AbstractSet<Entry<List<String>, Object>>() {
                     @Override
-                    public Iterator<Entry<List<String>, Number>> iterator() {
+                    public Iterator<Entry<List<String>, Object>> iterator() {
                         return Iterators.transform(
                                 DatasetTableView.this.rowKeySet().iterator(),
                                 rowKey -> {
@@ -256,7 +256,7 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
     }
 
     @Override
-    public Set<Cell<List<String>, List<String>, Number>> cellSet() {
+    public Set<Cell<List<String>, List<String>, Object>> cellSet() {
         Set<List<List<String>>> lists = Sets.cartesianProduct(rowKeySet(), columnKeySet());
         return lists.stream().map(dimensions -> {
             return Tables.immutableCell(dimensions.get(0), dimensions.get(1), get(dimensions.get(0), dimensions.get(1)));
@@ -264,18 +264,18 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
     }
 
     @Override
-    public Collection<Number> values() {
+    public Collection<Object> values() {
         return source.getRows();
     }
 
     @Override
-    public Map<List<String>, Map<List<String>, Number>> rowMap() {
-        return new AbstractMap<List<String>, Map<List<String>, Number>>() {
+    public Map<List<String>, Map<List<String>, Object>> rowMap() {
+        return new AbstractMap<List<String>, Map<List<String>, Object>>() {
             @Override
-            public Set<Entry<List<String>, Map<List<String>, Number>>> entrySet() {
-                return new AbstractSet<Entry<List<String>, Map<List<String>, Number>>>() {
+            public Set<Entry<List<String>, Map<List<String>, Object>>> entrySet() {
+                return new AbstractSet<Entry<List<String>, Map<List<String>, Object>>>() {
                     @Override
-                    public Iterator<Entry<List<String>, Map<List<String>, Number>>> iterator() {
+                    public Iterator<Entry<List<String>, Map<List<String>, Object>>> iterator() {
                         return Iterators.transform(
                                 rowKeySet().iterator(),
                                 rowKey -> {
@@ -295,13 +295,13 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
     }
 
     @Override
-    public Map<List<String>, Map<List<String>, Number>> columnMap() {
-        return new AbstractMap<List<String>, Map<List<String>, Number>>() {
+    public Map<List<String>, Map<List<String>, Object>> columnMap() {
+        return new AbstractMap<List<String>, Map<List<String>, Object>>() {
             @Override
-            public Set<Entry<List<String>, Map<List<String>, Number>>> entrySet() {
-                return new AbstractSet<Entry<List<String>, Map<List<String>, Number>>>() {
+            public Set<Entry<List<String>, Map<List<String>, Object>>> entrySet() {
+                return new AbstractSet<Entry<List<String>, Map<List<String>, Object>>>() {
                     @Override
-                    public Iterator<Entry<List<String>, Map<List<String>, Number>>> iterator() {
+                    public Iterator<Entry<List<String>, Map<List<String>, Object>>> iterator() {
                         return Iterators.transform(
                                 columnKeySet().iterator(),
                                 columnKey -> {
@@ -340,7 +340,7 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
      */
     @Deprecated
     @Override
-    public final Number put(List<String> rowKey, List<String> columnKey, Number value) {
+    public final Object put(List<String> rowKey, List<String> columnKey, Object value) {
         throw new UnsupportedOperationException();
     }
 
@@ -352,7 +352,7 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
      */
     @Deprecated
     @Override
-    public final void putAll(Table<? extends List<String>, ? extends List<String>, ? extends Number> table) {
+    public final void putAll(Table<? extends List<String>, ? extends List<String>, ? extends Object> table) {
         throw new UnsupportedOperationException();
     }
 
@@ -364,7 +364,7 @@ public class DatasetTableView implements Table<List<String>, List<String>, Numbe
      */
     @Deprecated
     @Override
-    public final Number remove(Object rowKey, Object columnKey) {
+    public final Object remove(Object rowKey, Object columnKey) {
         throw new UnsupportedOperationException();
     }
 

@@ -90,9 +90,9 @@ public class DatasetDeserializerTest {
         );
         arrayParser.nextValue();
 
-        List<Number> fromMap = ds.parseValues(mapParser, null);
-        List<Number> fromArray = ds.parseValues(arrayParser, null);
-        List<Number> expected = Lists.newArrayList(
+        List<Object> fromMap = ds.parseValues(mapParser, null);
+        List<Object> fromArray = ds.parseValues(arrayParser, null);
+        List<Object> expected = Lists.newArrayList(
                 10, 20, null, 30, 40
         );
 
